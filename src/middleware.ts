@@ -10,12 +10,8 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
   const url = request.nextUrl;
 
-  // Allow access to dashboard for unauthenticated users
-  if (url.pathname.startsWith("/dashboard")) {
-    return NextResponse.next(); // Allow access regardless of authentication
-  }
-
-  // Redirect authenticated users away from sign-in, sign-up, or home pages to the dashboard
+  // Redirect to dashboard if the user is already authenticated
+  // and trying to access sign-in, sign-up, or home page
   if (
     token &&
     (url.pathname.startsWith("/sign-in") ||
@@ -24,6 +20,10 @@ export async function middleware(request: NextRequest) {
       url.pathname === "/")
   ) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  if (!token && url.pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
   return NextResponse.next();

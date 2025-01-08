@@ -2,32 +2,35 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User";
 
 export async function POST(request: Request) {
-  await dbConnect;
+  await dbConnect();
+
   try {
     const { username, code } = await request.json();
+
     const decodedUsername = decodeURIComponent(username);
+
     const user = await UserModel.findOne({ username: decodedUsername });
 
     if (!user) {
       return Response.json(
         {
           success: false,
-          message: "User not found",
+          message: "User Not Found",
         },
         { status: 500 }
       );
     }
-    const isCodeValid = user.verifyCode === code;
+
+    const isCodeValid = user.verifyCode.substring(0, 6) === code;
     const isCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
 
     if (isCodeValid && isCodeNotExpired) {
       user.isVerified = true;
       await user.save();
-
       return Response.json(
         {
           success: true,
-          message: "Account verified successfully",
+          message: "Account Verified Successfully",
         },
         { status: 200 }
       );
@@ -36,25 +39,25 @@ export async function POST(request: Request) {
         {
           success: false,
           message:
-            "Verification code  has expired , please signup again to get a new code",
+            "Verifying Code Has Been Expired, Please SignUP again to get a new Code",
         },
-        { status: 400 }
+        { status: 500 }
       );
     } else {
       return Response.json(
         {
           success: false,
-          message: "Incorrect Verification code",
+          message: "Verification Code is INCORRECT",
         },
-        { status: 400 }
+        { status: 500 }
       );
     }
   } catch (error) {
-    console.log("Error verifying username", error);
+    console.error("Error in Verifying Code", error);
     return Response.json(
       {
         success: false,
-        message: "Error checking username",
+        message: "Error Verifying Code",
       },
       { status: 500 }
     );
