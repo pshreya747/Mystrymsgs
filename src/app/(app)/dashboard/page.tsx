@@ -1,21 +1,22 @@
 "use client";
+
 import { MessageCard } from "@/components/MessageCard";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Message } from "@/model/User";
-import { acceptMessageSchema } from "@/schemas/acceptMessageSchema";
 import { ApiResponse } from "@/types/ApiResponse";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { AxiosError } from "axios";
 import { Loader2, RefreshCcw } from "lucide-react";
 import { User } from "next-auth";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { acceptMessageSchema } from "@/schemas/acceptMessageSchema";
 
-const page = () => {
+function UserDashboard() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
@@ -25,15 +26,17 @@ const page = () => {
   const handleDeleteMessage = (messageId: string) => {
     setMessages(messages.filter((message) => message._id !== messageId));
   };
+
   const { data: session } = useSession();
 
   const form = useForm({
     resolver: zodResolver(acceptMessageSchema),
   });
+
   const { register, watch, setValue } = form;
   const acceptMessages = watch("acceptMessages");
 
-  const fetchAcceptMessage = useCallback(async () => {
+  const fetchAcceptMessages = useCallback(async () => {
     setIsSwitchLoading(true);
     try {
       const response = await axios.get<ApiResponse>("/api/accept-messages");
@@ -43,14 +46,14 @@ const page = () => {
       toast({
         title: "Error",
         description:
-          axiosError.response?.data.message ||
+          axiosError.response?.data.message ??
           "Failed to fetch message settings",
         variant: "destructive",
       });
     } finally {
       setIsSwitchLoading(false);
     }
-  }, [setValue]);
+  }, [setValue, toast]);
 
   const fetchMessages = useCallback(
     async (refresh: boolean = false) => {
@@ -80,16 +83,17 @@ const page = () => {
     },
     [setIsLoading, setMessages, toast]
   );
+
+  // Fetch initial state from the server
   useEffect(() => {
     if (!session || !session.user) return;
 
     fetchMessages();
 
-    fetchAcceptMessage();
-  }, [session, setValue, toast, fetchAcceptMessage, fetchMessages]);
+    fetchAcceptMessages();
+  }, [session, setValue, toast, fetchAcceptMessages, fetchMessages]);
 
-  //handle switch chnge
-
+  // Handle switch change
   const handleSwitchChange = async () => {
     try {
       const response = await axios.post<ApiResponse>("/api/accept-messages", {
@@ -113,7 +117,7 @@ const page = () => {
   };
 
   if (!session || !session.user) {
-    return <div>Please login</div>;
+    return <div></div>;
   }
 
   const { username } = session.user as User;
@@ -175,7 +179,7 @@ const page = () => {
       </Button>
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
         {messages.length > 0 ? (
-          messages.map((message) =>
+          messages.map((message, index) =>
             typeof message._id === "string" ? (
               <MessageCard
                 key={message._id}
@@ -190,6 +194,6 @@ const page = () => {
       </div>
     </div>
   );
-};
+}
 
-export default page;
+export default UserDashboard;

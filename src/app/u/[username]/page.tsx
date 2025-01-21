@@ -27,10 +27,14 @@ function MessagePage() {
 
   const onSubmit = async (data: z.infer<typeof messageSchema>) => {
     try {
-      const response = await axios.post<ApiResponse>("/api/send-message", {
-        username: params.username,
-        content: data.content,
-      });
+      const response = await axios.post<ApiResponse>(
+        "http://localhost:3000/api/send-message",
+        {
+          username: params.username,
+          content: data.content,
+        }
+      );
+
       toast({
         title: "Success",
         description: response.data.message,
@@ -40,10 +44,12 @@ function MessagePage() {
       console.error("Error during sign-up:", error);
 
       const axiosError = error as AxiosError<ApiResponse>;
+      const errorMessage =
+        axiosError.response?.data.message || "Something went wrong";
 
       toast({
-        title: "Error occured while sending message",
-        description: axiosError.response?.data.message,
+        title: "Error",
+        description: errorMessage,
         variant: "destructive",
       });
     }

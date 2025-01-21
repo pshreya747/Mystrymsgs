@@ -18,17 +18,18 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-const VerifyAccount = () => {
+function VerifyAccount() {
   const router = useRouter();
   const params = useParams<{ username: string }>();
   const { toast } = useToast();
+
   const form = useForm<z.infer<typeof verifySchema>>({
     resolver: zodResolver(verifySchema),
   });
 
   const onSubmit = async (data: z.infer<typeof verifySchema>) => {
     try {
-      const response = await axios.post(`/api/verify-code`, {
+      const response = await axios.post("/api/verify-code", {
         username: params.username,
         code: data.code,
       });
@@ -37,21 +38,21 @@ const VerifyAccount = () => {
         title: "Success",
         description: response.data.message,
       });
-      router.replace("sign-in");
+      router.push("/sign-in");
     } catch (error) {
-      console.error("Error in signup of user", error);
+      console.error("Error during sign-up:", error);
+
       const axiosError = error as AxiosError<ApiResponse>;
-      let errorMessage = axiosError.response?.data.message;
+
       toast({
-        title: "Signup failed",
-        description: errorMessage,
+        title: "Sign Up Failed",
+        description: axiosError.response?.data.message,
         variant: "destructive",
       });
     }
   };
-
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="flex justify-center items-center min-h-screen bg-gray-800">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
@@ -78,6 +79,6 @@ const VerifyAccount = () => {
       </div>
     </div>
   );
-};
+}
 
 export default VerifyAccount;
