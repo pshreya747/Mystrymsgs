@@ -20,18 +20,38 @@ import * as z from "zod";
 
 function MessagePage() {
   const { toast } = useToast();
-  const params = useParams<{ username: string }>();
+  const params = useParams(); // Remove generic typing since it's inferred
+  const username = params?.username ? String(params.username) : "";
+
   const form = useForm<z.infer<typeof messageSchema>>({
     resolver: zodResolver(messageSchema),
+    defaultValues: {
+      content: "",
+    },
   });
 
   const onSubmit = async (data: z.infer<typeof messageSchema>) => {
+    if (!username) {
+      toast({
+        title: "Error",
+        description: "Username is missing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await axios.post<ApiResponse>(
         "http://localhost:3000/api/send-message",
         {
-          username: params.username,
+          username, // Use the extracted and validated username
           content: data.content,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") || ""}`, // Handle null values safely
+            "Content-Type": "application/json",
+          },
         }
       );
 
@@ -41,11 +61,11 @@ function MessagePage() {
         variant: "default",
       });
     } catch (error) {
-      console.error("Error during sign-up:", error);
+      console.error("Error during message submission:", error);
 
       const axiosError = error as AxiosError<ApiResponse>;
       const errorMessage =
-        axiosError.response?.data.message || "Something went wrong";
+        axiosError.response?.data?.message || "Something went wrong";
 
       toast({
         title: "Error",
@@ -63,12 +83,12 @@ function MessagePage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
+            control={form.control} // Correct prop usage
             name="content"
-            control={form.control}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Send Anonymous Message to @{params.username}
+                  Send Anonymous Message to @{username || "Unknown"}
                 </FormLabel>
                 <Textarea
                   placeholder="Drop your anonymous message here."

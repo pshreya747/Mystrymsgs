@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/carousel";
 
 export default function Home() {
+  const currentYear = new Date().getFullYear();
   return (
     <>
       {/* Main content */}
@@ -60,7 +61,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="text-center p-4 md:p-6 bg-gray-900 text-white">
-        © 2023 Anonymous Feedback. All rights reserved.
+        &copy; {currentYear} MystryMessage. All rights reserved.
       </footer>
     </>
   );

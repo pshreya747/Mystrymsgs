@@ -40,12 +40,12 @@ function VerifyAccount() {
       });
       router.push("/sign-in");
     } catch (error) {
-      console.error("Error during sign-up:", error);
+      console.error("Error during verification:", error);
 
       const axiosError = error as AxiosError<ApiResponse>;
 
       toast({
-        title: "Sign Up Failed",
+        title: "Verification Failed",
         description: axiosError.response?.data.message,
         variant: "destructive",
       });
@@ -68,7 +68,7 @@ function VerifyAccount() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Verification Code</FormLabel>
-                  <Input {...field} />
+                  <Input {...field} type="text" placeholder="Enter your code" />
                   <FormMessage />
                 </FormItem>
               )}

@@ -20,7 +20,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const userId = user._id;
+  const userId = session.user?._id || session.user?._id;
+
   const { acceptMessages } = await request.json();
 
   try {
@@ -75,7 +76,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const userId = user._id;
+  const userId = session.user?._id || session.user?._id;
 
   try {
     const foundUser = await UserModel.findById(userId);
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
     return Response.json(
       {
         success: true,
-        isAcceptingMessages: foundUser.isAcceptingMessage,
+        isAcceptingMessages: foundUser.isAcceptingMessages, // Correct property name
       },
       { status: 200 }
     );
